@@ -1,0 +1,10 @@
+.checkstyle
+.classpath
+.factorypath
+.idea/
+.pmd
+.project
+.ruleset
+.settings/
+bin/
+target/

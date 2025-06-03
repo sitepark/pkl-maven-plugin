@@ -1,0 +1,190 @@
+<?xml version="1.0"?>
+<project
+    xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.sitepark.maven.plugins</groupId>
+    <artifactId>pkl-maven-plugin</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <packaging>maven-plugin</packaging>
+
+    <name>PKL Maven Plugin</name>
+    <description>maven plugin for pkl files</description>
+
+    <organization>
+        <name>Sitepark</name>
+        <url>https://www.sitepark.com</url>
+    </organization>
+
+    <licenses>
+        <license>
+            <name>The MIT License</name>
+            <url>https://opensource.org/licenses/MIT</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>schaeper@sitepark</id>
+            <name>Mario Schäper</name>
+            <email>schaeper@sitepark.com</email>
+            <url>https://github.com/sitepark-schaeper</url>
+            <organization>Sitepark</organization>
+            <organizationUrl>https://www.sitepark.com</organizationUrl>
+            <roles>
+                <role>developer</role>
+            </roles>
+            <timezone>Europe/Berlin</timezone>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:git@github.com:sitepark/pkl-maven-plugin.git</connection>
+        <developerConnection>scm:git:git@github.com:sitepark/pkl-maven-plugin.git</developerConnection>
+        <tag>HEAD</tag>
+        <url>https://github.com/sitepark/pkl-maven-plugin</url>
+    </scm>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <file.encoding>UTF-8</file.encoding>
+        <maven.compiler.release>21</maven.compiler.release>
+    </properties>
+
+    <distributionManagement>
+        <repository>
+            <id>release</id>
+            <url>https://nexus.sitepark.com/nexus/content/repositories/releases</url>
+        </repository>
+        <snapshotRepository>
+            <id>snapshot</id>
+            <url>https://nexus.sitepark.com/nexus/content/repositories/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-plugin-api</artifactId>
+            <version>3.9.9</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.maven.plugin-tools</groupId>
+            <artifactId>maven-plugin-annotations</artifactId>
+            <version>3.4</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.maven.shared</groupId>
+            <artifactId>maven-shared-utils</artifactId>
+            <version>3.4.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.pkl-lang</groupId>
+            <artifactId>pkl-config-java</artifactId>
+            <version>0.28.2</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.14.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-resources-plugin</artifactId>
+                    <version>3.3.1</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-plugin-plugin</artifactId>
+                    <version>3.15.1</version>
+                </plugin>
+                <plugin>
+                    <groupId>com.diffplug.spotless</groupId>
+                    <artifactId>spotless-maven-plugin</artifactId>
+                    <version>2.43.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>com.github.spotbugs</groupId>
+                    <artifactId>spotbugs-maven-plugin</artifactId>
+                    <version>4.9.3.0</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-plugin-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>help-mojo</id>
+                        <goals>
+                            <goal>helpmojo</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.diffplug.spotless</groupId>
+                <artifactId>spotless-maven-plugin</artifactId>
+                <configuration>
+                    <java>
+                        <removeUnusedImports>
+                            <engine>google-java-format</engine>
+                        </removeUnusedImports>
+                        <googleJavaFormat>
+                            <version>1.25.2</version>
+                            <style>GOOGLE</style>
+                            <reflowLongStrings>true</reflowLongStrings>
+                            <formatJavadoc>false</formatJavadoc>
+                        </googleJavaFormat>
+                    </java>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>spotless-check</id>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <phase>verify</phase>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.github.spotbugs</groupId>
+                <artifactId>spotbugs-maven-plugin</artifactId>
+                <configuration>
+                    <effort>Max</effort>
+                    <threshold>Low</threshold>
+                    <maxRank>20</maxRank>
+                    <excludeFilterFile>src/main/resources/spotbugs-exclude-filter.xml</excludeFilterFile>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.github.spotbugs</groupId>
+                        <artifactId>spotbugs</artifactId>
+                        <version>4.9.3</version>
+                    </dependency>
+                </dependencies>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <phase>verify</phase>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
