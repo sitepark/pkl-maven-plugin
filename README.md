@@ -32,7 +32,7 @@ files to test.
 
 ### modulepath
 
-A modulepath to use when executing. May be absolute or relative to `${basedir}`.
+A modulepath to use when executing.
 
 ### skip
 
@@ -55,10 +55,10 @@ Whether to skip execution.
         </execution>
     </executions>
     <configuration>
-        <directory>src/test/pkl</directory>
+        <directory>${baseDir}/src/test/pkl</directory>
         <files>**/*.pkl</files>
         <modulepath>
-            <modulepath>src/main/webapp/WEB-INF/config/</modulepath>
+            <modulepath>${baseDir}/src/main/webapp/WEB-INF/config/</modulepath>
         </modulepath>
     </configuration>
 </plugin>
