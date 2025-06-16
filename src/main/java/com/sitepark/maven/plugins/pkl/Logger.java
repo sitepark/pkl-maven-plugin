@@ -111,7 +111,6 @@ final class Logger {
         this.log.info(MessageUtils.buffer().success(summary).build());
         break;
     }
-    this.log.info("");
   }
 
   private void successfullTests(final TestScope scope, final Stats stats) {
