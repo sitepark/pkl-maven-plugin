@@ -102,17 +102,16 @@ final class Logger {
       case FAILED:
         this.log.info("");
         this.log.error(MessageUtils.buffer().failure(summary).build());
-        this.log.info("");
         break;
       case SKIPPED:
         this.log.info("");
         this.log.warn(MessageUtils.buffer().warning(summary).build());
-        this.log.info("");
         break;
       case SUCCEEDED:
         this.log.info(MessageUtils.buffer().success(summary).build());
         break;
     }
+    this.log.info("");
   }
 
   private void successfullTests(final TestScope scope, final Stats stats) {
