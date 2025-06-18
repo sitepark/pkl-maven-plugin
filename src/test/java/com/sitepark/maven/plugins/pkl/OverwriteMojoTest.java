@@ -19,7 +19,7 @@ public final class OverwriteMojoTest {
 \\[INFO\\] -------------------------------------------------------
 \\[INFO\\] Running src/test/resources/pkl/tests/writingTests\\.pkl
 \\[WARN\\] Tests run: 1, Failures: 0, Errors: 0, Skipped: 1, Time elapsed: \\d+[\\.,]\\d+s in com\\.sitepark\\.maven\\.plugins\\.pkl\\.writingTests
-\\[WARN\\]   \\(file:///home/schaeper/git/pkl-maven-plugin/src/test/resources/pkl/tests/writingTests\\.pkl\\) <<< SKIPPED!
+\\[WARN\\]   \\(file://.*test/resources/pkl/tests/writingTests\\.pkl\\) <<< SKIPPED!
 \\[ERROR\\]   Wrote expected output for test this should be written
 \\[INFO\\]
 \\[INFO\\]
