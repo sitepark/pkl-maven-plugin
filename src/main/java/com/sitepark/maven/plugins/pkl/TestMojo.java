@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.maven.plugin.AbstractMojo;
@@ -45,9 +46,19 @@ public sealed class TestMojo extends AbstractMojo permits OverwriteMojo {
   private String directory;
 
   /**
-   * A modulepath to use when executing. May be absolute or relative to ${basedir}.
+   * A modulepath to use when executing.
    */
   @Parameter private Set<String> modulepath;
+
+  /**
+   * Properties to use when executing.
+   */
+  @Parameter private Map<String, String> properties = Map.of();
+
+  /**
+   * Environment variables to use when executing.
+   */
+  @Parameter private Map<String, String> environmentVariables = Map.of();
 
   /**
    * Whether to skip execution.
@@ -126,6 +137,10 @@ public sealed class TestMojo extends AbstractMojo permits OverwriteMojo {
         .addResourceReader(ResourceReaders.pkg())
         .addResourceReader(ResourceReaders.projectpackage())
         .addResourceReader(ResourceReaders.modulePath(modulePathResolver))
+        .addResourceReader(ResourceReaders.environmentVariable())
+        .addResourceReader(ResourceReaders.externalProperty())
+        .addEnvironmentVariables(this.environmentVariables)
+        .addExternalProperties(this.properties)
         .build();
   }
 
@@ -151,10 +166,8 @@ public sealed class TestMojo extends AbstractMojo permits OverwriteMojo {
               error.message(),
               Stats.Message.fromException(error.exception())));
     }
-    final var facts = result.facts();
-    this.collectTestSectionResults(facts, result.moduleName(), stats);
-    final var examples = result.examples();
-    this.collectTestSectionResults(examples, result.moduleName(), stats);
+    this.collectTestSectionResults(result.facts(), result.moduleName(), stats);
+    this.collectTestSectionResults(result.examples(), result.moduleName(), stats);
     return stats.build();
   }
 
