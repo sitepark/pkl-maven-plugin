@@ -1,0 +1,20 @@
+module com.sitepark.maven.plugins.pkl.failingTests
+
+amends "pkl:test"
+
+facts {
+  ["this should fail"] {
+    1 == 2
+    2 == 3
+  }
+}
+
+local example = new Dynamic {
+  foo = "bar"
+}
+
+examples {
+  ["my non-matching example"] {
+    example
+  }
+}

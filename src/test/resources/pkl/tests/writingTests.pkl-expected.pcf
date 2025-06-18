@@ -1,0 +1,7 @@
+examples {
+  ["this should be written"] {
+    new {
+      foo = "bar"
+    }
+  }
+}

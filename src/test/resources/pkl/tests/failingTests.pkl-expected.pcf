@@ -1,0 +1,7 @@
+examples {
+  ["my perfectly matching example"] {
+    new {
+      foo = "baz"
+    }
+  }
+}

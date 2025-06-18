@@ -1,0 +1,13 @@
+module com.sitepark.maven.plugins.pkl.writingTests
+
+amends "pkl:test"
+
+local example = new Dynamic {
+  foo = "bar"
+}
+
+examples {
+  ["this should be written"] {
+    example
+  }
+}

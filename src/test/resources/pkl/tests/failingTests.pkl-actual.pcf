@@ -1,0 +1,7 @@
+examples {
+  ["my non-matching example"] {
+    new {
+      foo = "bar"
+    }
+  }
+}

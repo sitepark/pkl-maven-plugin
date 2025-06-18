@@ -38,33 +38,33 @@ public sealed class TestMojo extends AbstractMojo permits OverwriteMojo {
    * A globbed path, relative to ${pkl.directory} matching all pkl files to test.
    */
   @Parameter(required = true)
-  private String files;
+  String files;
 
   /**
    * The base directory to search pkl files in via ${pkl.files}.
    */
   @Parameter(defaultValue = "${basedir}")
-  private String directory;
+  String directory;
 
   /**
    * A modulepath to use when executing.
    */
-  @Parameter private Set<String> modulepath;
+  @Parameter Set<String> modulepath;
 
   /**
    * Properties to use when executing.
    */
-  @Parameter private Map<String, String> properties = Map.of();
+  @Parameter Map<String, String> properties = Map.of();
 
   /**
    * Environment variables to use when executing.
    */
-  @Parameter private Map<String, String> environmentVariables = Map.of();
+  @Parameter Map<String, String> environmentVariables = Map.of();
 
   /**
    * Whether to skip execution.
    */
-  @Parameter private boolean skip;
+  @Parameter boolean skip;
 
   private static final int MAX_DEPTH = 8;
 

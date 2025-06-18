@@ -1,0 +1,11 @@
+module com.sitepark.maven.plugins.pkl.succeedingTests
+
+amends "pkl:test"
+
+facts {
+  ["this should succeed"] {
+    1 == 1
+    2 == 2
+    3 == 3
+  }
+}
