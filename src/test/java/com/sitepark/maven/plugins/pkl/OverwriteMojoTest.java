@@ -34,7 +34,7 @@ public final class OverwriteMojoTest {
     final var log = new CapturingLog();
     final var mojo = new OverwriteMojo();
     mojo.directory = PKL_DIR;
-    mojo.files = PKL_DIR + "writingTests.pkl";
+    mojo.files = "writingTests.pkl";
     mojo.setLog(log);
     Assertions.assertDoesNotThrow(mojo::execute);
     Assertions.assertLinesMatch(expected.lines(), log.captured().lines());

@@ -28,7 +28,7 @@ public final class TestMojoTest {
     final var log = new CapturingLog();
     final var mojo = new TestMojo();
     mojo.directory = PKL_DIR;
-    mojo.files = PKL_DIR + "succeedingTests.pkl";
+    mojo.files = "succeedingTests.pkl";
     mojo.setLog(log);
     Assertions.assertDoesNotThrow(mojo::execute);
     Assertions.assertLinesMatch(expected.lines(), log.captured().lines());
@@ -69,7 +69,7 @@ public final class TestMojoTest {
     final var log = new CapturingLog();
     final var mojo = new TestMojo();
     mojo.directory = PKL_DIR;
-    mojo.files = PKL_DIR + "failingTests.pkl";
+    mojo.files = "failingTests.pkl";
     mojo.setLog(log);
     Assertions.assertThrows(MojoFailureException.class, mojo::execute);
     Assertions.assertLinesMatch(expected.lines(), log.captured().lines());

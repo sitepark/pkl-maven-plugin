@@ -89,10 +89,11 @@ public sealed class TestMojo extends AbstractMojo permits OverwriteMojo {
     // the tests may delete `mytest.pkl-actual.pcf` files.
     final Set<Path> files;
     try {
+      final var directory = Path.of(this.directory);
+      final var globExpression = "glob:" + directory + "/" + this.files;
       files =
-          Files.walk(Path.of(this.directory), MAX_DEPTH)
-              // TODO: the path matcher includes "this.directory" !
-              .filter(FileSystems.getDefault().getPathMatcher("glob:" + this.files)::matches)
+          Files.walk(directory, MAX_DEPTH)
+              .filter(FileSystems.getDefault().getPathMatcher(globExpression)::matches)
               .collect(Collectors.toSet());
     } catch (final IOException exception) {
       throw new MojoExecutionException("Failed to read test files", exception);
