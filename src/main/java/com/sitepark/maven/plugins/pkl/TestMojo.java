@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -84,16 +85,25 @@ public sealed class TestMojo extends AbstractMojo permits OverwriteMojo {
       return;
     }
     this.logger.beginExecution();
+    // searching files and running tests cannot be done in the same stream as
+    // the tests may delete `mytest.pkl-actual.pcf` files.
+    final Set<Path> files;
+    try {
+      files =
+          Files.walk(Path.of(this.directory), MAX_DEPTH)
+              // TODO: the path matcher includes "this.directory" !
+              .filter(FileSystems.getDefault().getPathMatcher("glob:" + this.files)::matches)
+              .collect(Collectors.toSet());
+    } catch (final IOException exception) {
+      throw new MojoExecutionException("Failed to read test files", exception);
+    }
     final Stats stats;
     try (final var modulePathResolver = this.modulePathResolver();
         final var evaluator = this.evaluator(modulePathResolver)) {
       stats =
-          Files.walk(Path.of(this.directory), MAX_DEPTH)
-              .filter(FileSystems.getDefault().getPathMatcher("glob:" + this.files)::matches)
+          files.stream()
               .map(file -> this.runTests(evaluator, file))
               .collect(new Stats.SummingCollector());
-    } catch (final IOException exception) {
-      throw new MojoExecutionException("Failed to read test files", exception);
     }
     if (stats.testsRun() == 0) {
       throw new MojoFailureException("No tests were executed!");
@@ -183,7 +193,9 @@ public sealed class TestMojo extends AbstractMojo permits OverwriteMojo {
       for (final var error : result.errors()) {
         stats.addError(
             new Stats.Error(
-                scope, error.message(), Stats.Message.fromException(error.exception())));
+                scope,
+                this.formatFailureMessage(error.message()),
+                Stats.Message.fromException(error.exception())));
       }
       for (final var failure : result.failures()) {
         if ("Example Output Written".equals(failure.kind())) {
@@ -193,9 +205,19 @@ public sealed class TestMojo extends AbstractMojo permits OverwriteMojo {
         } else {
           stats.addFailure(
               new Stats.Failure(
-                  scope, failure.message(), Stats.Message.fromString(failure.message())));
+                  scope,
+                  this.formatFailureMessage(failure.message()),
+                  Stats.Message.fromString(failure.message())));
         }
       }
     }
+  }
+
+  private String formatFailureMessage(final String message) {
+    return message
+        .lines()
+        .map(line -> line.replaceFirst("\\s*\\(file://[^\\)]+\\)\\s*", " ").trim())
+        .filter(Predicate.not(String::isEmpty))
+        .collect(Collectors.joining(" "));
   }
 }
