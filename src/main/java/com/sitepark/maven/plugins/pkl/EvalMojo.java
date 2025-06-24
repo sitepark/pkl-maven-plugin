@@ -1,12 +1,14 @@
 package com.sitepark.maven.plugins.pkl;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -21,21 +23,19 @@ import org.pkl.core.EvaluatorBuilder;
 import org.pkl.core.ModuleSource;
 import org.pkl.core.SecurityManagers;
 import org.pkl.core.StackFrameTransformers;
-import org.pkl.core.TestResults;
 import org.pkl.core.module.ModuleKeyFactories;
 import org.pkl.core.module.ModulePathResolver;
 import org.pkl.core.resource.ResourceReaders;
 
 @Mojo(
-    name = "test",
-    defaultPhase = LifecyclePhase.TEST,
-    requiresDependencyResolution = ResolutionScope.TEST)
-public sealed class TestMojo extends AbstractMojo permits OverwriteMojo {
-  private final boolean overwrite;
-  private TestLogger logger;
+    name = "eval",
+    defaultPhase = LifecyclePhase.GENERATE_RESOURCES,
+    requiresDependencyResolution = ResolutionScope.COMPILE)
+public final class EvalMojo extends AbstractMojo {
+  private EvalLogger logger;
 
   /**
-   * A globbed path, relative to ${pkl.directory} matching all pkl files to test.
+   * A globbed path, relative to ${pkl.directory} matching all pkl files to evaluate.
    */
   @Parameter(required = true)
   String files;
@@ -45,6 +45,18 @@ public sealed class TestMojo extends AbstractMojo permits OverwriteMojo {
    */
   @Parameter(defaultValue = "${basedir}")
   String directory;
+
+  /**
+   * The directory where the resulting files are generated to.
+   */
+  @Parameter(required = true)
+  String output;
+
+  /**
+   * Whether to overwrite existing files.
+   */
+  @Parameter(defaultValue = "true")
+  boolean overwrite;
 
   /**
    * A modulepath to use when executing.
@@ -68,25 +80,17 @@ public sealed class TestMojo extends AbstractMojo permits OverwriteMojo {
 
   private static final int MAX_DEPTH = 8;
 
-  public TestMojo() {
-    this(false);
-  }
-
-  protected TestMojo(final boolean overwrite) {
-    this.overwrite = overwrite;
-  }
+  public EvalMojo() {}
 
   public void execute() throws MojoFailureException, MojoExecutionException {
     if (this.logger == null) {
-      this.logger = new TestLogger(this.getLog());
+      this.logger = new EvalLogger(this.getLog());
     }
     if (this.skip) {
       this.logger.executionSkipped();
       return;
     }
     this.logger.beginExecution();
-    // searching files and running tests cannot be done in the same stream as
-    // the tests may delete `mytest.pkl-actual.pcf` files.
     final Set<Path> files;
     try {
       final var directory = Path.of(this.directory);
@@ -96,31 +100,26 @@ public sealed class TestMojo extends AbstractMojo permits OverwriteMojo {
               .filter(FileSystems.getDefault().getPathMatcher(globExpression)::matches)
               .collect(Collectors.toSet());
     } catch (final IOException exception) {
-      throw new MojoExecutionException("Failed to read test files", exception);
+      throw new MojoExecutionException("Failed to read pkl files", exception);
     }
-    final TestStats stats;
+    final var statsBuilder = EvalStats.builder();
     try (final var modulePathResolver = this.modulePathResolver();
         final var evaluator = this.evaluator(modulePathResolver)) {
-      stats =
-          files.stream()
-              .map(file -> this.runTests(evaluator, file))
-              .collect(new TestStats.SummingCollector());
+      for (final var file : files) {
+        statsBuilder.addAll(this.evalFile(evaluator, file));
+      }
     }
-    if (stats.testsRun() == 0) {
-      throw new MojoFailureException("No tests were executed!");
+    final var stats = statsBuilder.build();
+    if (stats.filesCreated() == 0) {
+      throw new MojoFailureException("No files were evaluated!");
     }
     this.logger.summary(stats);
-    switch (stats.levelOfSuccess()) {
-      case FAILED -> throw new MojoFailureException("There are test failures.");
-      case ERRED -> throw new MojoFailureException("There are test errors.");
-      default -> {}
-    }
   }
 
   @Override
   public void setLog(final Log log) {
     super.setLog(log);
-    this.logger = new TestLogger(log);
+    this.logger = new EvalLogger(log);
   }
 
   private final ModulePathResolver modulePathResolver() {
@@ -156,72 +155,52 @@ public sealed class TestMojo extends AbstractMojo permits OverwriteMojo {
         .build();
   }
 
-  private final TestStats runTests(final Evaluator evaluator, final Path file) {
-    this.logger.runTest(file.toString());
+  private final EvalStats evalFile(final Evaluator evaluator, final Path file)
+      throws MojoExecutionException {
+    this.logger.evalFile(file);
     final long start = System.currentTimeMillis();
-    final var results = evaluator.evaluateTest(ModuleSource.path(file), this.overwrite);
-    final double secondsElapsed = ((double) (System.currentTimeMillis() - start)) / 1_000;
-    final var stats = this.collectTestResults(results, secondsElapsed);
-    this.logger.testResult(results.moduleName(), stats);
-    return stats;
-  }
-
-  private TestStats collectTestResults(final TestResults result, final double secondsElapsed) {
-    this.logger.testLogs(result.logs());
-    final var stats =
-        TestStats.builder().setTestsRun(result.totalTests()).setSecondsElapsed(secondsElapsed);
-    final var error = result.error();
-    if (error != null) {
-      stats.addError(
-          new TestStats.Error(
-              new TestStats.Scope(result.moduleName(), null, null),
-              error.message(),
-              TestStats.Message.fromException(error.exception())));
+    final var results = evaluator.evaluateOutputFiles(ModuleSource.path(file));
+    if (results.isEmpty()) {
+      final double secondsElapsed = ((double) (System.currentTimeMillis() - start)) / 1_000;
+      this.logger.noFilesWritten(file);
+      return EvalStats.builder()
+          .setFilesEvaluated(1)
+          .setFilesCreated(0)
+          .setSecondsElapsed(secondsElapsed)
+          .build();
     }
-    this.collectTestSectionResults(result.facts(), result.moduleName(), stats);
-    this.collectTestSectionResults(result.examples(), result.moduleName(), stats);
-    return stats.build();
+    final var output = Paths.get(this.output);
+    for (final var result : results.entrySet()) {
+      final var outputFile = output.resolve(result.getKey());
+      try {
+        this.writeFile(outputFile, result.getValue().getText());
+      } catch (final IOException exception) {
+        throw new MojoExecutionException("Failed to write " + outputFile, exception);
+      }
+    }
+    final double secondsElapsed = ((double) (System.currentTimeMillis() - start)) / 1_000;
+    return EvalStats.builder()
+        .setFilesEvaluated(1)
+        .setFilesCreated(results.size())
+        .setSecondsElapsed(secondsElapsed)
+        .build();
   }
 
-  private void collectTestSectionResults(
-      final TestResults.TestSectionResults results,
-      final String module,
-      final TestStats.Builder stats) {
-    if (!results.failed() && !results.hasError()) {
+  private void writeFile(final Path file, final String text) throws IOException {
+    if (Files.exists(file) && !this.overwrite) {
+      this.logger.writeFileSkipped(file);
       return;
     }
-    for (final var result : results.results()) {
-      final var scope = new TestStats.Scope(module, results.name().toString(), result.name());
-      for (final var error : result.errors()) {
-        stats.addError(
-            new TestStats.Error(
-                scope,
-                this.formatFailureMessage(error.message()),
-                TestStats.Message.fromException(error.exception())));
-      }
-      for (final var failure : result.failures()) {
-        if ("Example Output Written".equals(failure.kind())) {
-          stats.addSkipped(
-              new TestStats.Skipped(
-                  scope,
-                  "Example Output Written",
-                  TestStats.Message.fromString(failure.message())));
-        } else {
-          stats.addFailure(
-              new TestStats.Failure(
-                  scope,
-                  this.formatFailureMessage(failure.message()),
-                  TestStats.Message.fromString(failure.message())));
-        }
-      }
+    this.logger.writeFile(file);
+    final var parent = file.getParent();
+    if (parent != null) {
+      Files.createDirectories(parent);
     }
-  }
-
-  private String formatFailureMessage(final String message) {
-    return message
-        .lines()
-        .map(line -> line.replaceFirst("\\s*\\(file://[^\\)]+\\)\\s*", " ").trim())
-        .filter(Predicate.not(String::isEmpty))
-        .collect(Collectors.joining(" "));
+    Files.write(
+        file,
+        text.getBytes(StandardCharsets.UTF_8),
+        StandardOpenOption.CREATE,
+        StandardOpenOption.TRUNCATE_EXISTING,
+        StandardOpenOption.WRITE);
   }
 }

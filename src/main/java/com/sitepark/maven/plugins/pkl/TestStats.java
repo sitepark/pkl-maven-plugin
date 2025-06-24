@@ -14,7 +14,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collector;
 import org.pkl.core.PklException;
 
-final record Stats(
+final record TestStats(
     int testsRun,
     List<Failure> failures,
     List<Error> errors,
@@ -85,7 +85,7 @@ final record Stats(
       return this;
     }
 
-    public Builder addAll(final Stats other) {
+    public Builder addAll(final TestStats other) {
       this.addTestsRun(other.testsRun())
           .addFailures(other.failures())
           .addErrors(other.errors())
@@ -94,8 +94,8 @@ final record Stats(
       return this;
     }
 
-    public Stats build() {
-      return new Stats(
+    public TestStats build() {
+      return new TestStats(
           this.testsRun,
           List.copyOf(this.failures),
           List.copyOf(this.errors),
@@ -158,7 +158,7 @@ final record Stats(
   public static record Skipped(Scope scope, String shortMessage, Message detailedMessage) {}
 
   public static final class SummingCollector
-      implements Collector<Stats, SummingCollector.Accumulator, Stats> {
+      implements Collector<TestStats, SummingCollector.Accumulator, TestStats> {
 
     private static final Set<Characteristics> CHARACTERISTICS = Set.of(Characteristics.CONCURRENT);
 
@@ -169,7 +169,7 @@ final record Stats(
         this.builder = new Builder();
       }
 
-      public void accumulate(final Stats stats) {
+      public void accumulate(final TestStats stats) {
         this.builder.addAll(stats);
       }
 
@@ -182,13 +182,13 @@ final record Stats(
         return this;
       }
 
-      public Stats finish() {
+      public TestStats finish() {
         return this.builder.build();
       }
     }
 
     @Override
-    public BiConsumer<Accumulator, Stats> accumulator() {
+    public BiConsumer<Accumulator, TestStats> accumulator() {
       return Accumulator::accumulate;
     }
 
@@ -203,7 +203,7 @@ final record Stats(
     }
 
     @Override
-    public Function<Accumulator, Stats> finisher() {
+    public Function<Accumulator, TestStats> finisher() {
       return Accumulator::finish;
     }
 

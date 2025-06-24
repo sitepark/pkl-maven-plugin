@@ -1,0 +1,33 @@
+module com.sitepark.maven.plugins.pkl.multipleOutputFiles
+
+import "pkl:xml"
+
+class Server {
+  ip: String(matches(Regex("^(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$")))
+  port: Int(this >= 0, this <= 65535)
+}
+
+servers: Listing<Server>(!isEmpty, isDistinct) = new {
+  new {
+    ip = "127.0.0.1"
+    port = 440
+  }
+  new {
+    ip = "192.168.0.1"
+    port = 443
+  }
+}
+
+output {
+  files {
+    ["servers.yaml"] {
+      value = module.servers
+      renderer = new YamlRenderer {}
+    }
+    ["servers.xml"] {
+      value = module.servers
+      renderer = new xml.Renderer {}
+    }
+  }
+}
+

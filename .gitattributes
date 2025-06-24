@@ -1,0 +1,4 @@
+# Syntax-Highlighting für PKL
+*.pkl linguist-language=Pkl
+*.pcf linguist-language=Pkl
+PklProject linguist-language=Pkl

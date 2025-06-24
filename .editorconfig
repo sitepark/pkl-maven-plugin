@@ -12,3 +12,9 @@ trim_trailing_whitespace = true
 [{*.java}]
 indent_size = 2
 max_line_length = 100
+
+[{*.pkl, *.pcf, PklProject}]
+indent_size = 2
+
+[*.pcf]
+trim_trailing_whitespace = false

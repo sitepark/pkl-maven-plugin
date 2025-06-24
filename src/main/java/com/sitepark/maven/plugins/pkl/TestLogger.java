@@ -4,7 +4,7 @@ import java.text.DecimalFormat;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.shared.utils.logging.MessageUtils;
 
-final class Logger {
+final class TestLogger {
   private final Log log;
 
   private static final String MESSAGE_INDENT = "  ";
@@ -22,7 +22,7 @@ final class Logger {
     }
   }
 
-  public Logger(final Log log) {
+  public TestLogger(final Log log) {
     this.log = log;
   }
 
@@ -47,7 +47,7 @@ final class Logger {
     }
   }
 
-  public void testResult(final String scope, final Stats stats) {
+  public void testResult(final String scope, final TestStats stats) {
     final var testScope = TestScope.fromString(scope);
     switch (stats.levelOfSuccess()) {
       case SUCCEEDED -> this.successfullTests(testScope, stats);
@@ -56,7 +56,7 @@ final class Logger {
     }
   }
 
-  public void summary(final Stats stats) {
+  public void summary(final TestStats stats) {
     this.log.info("");
     this.log.info("Results:");
     this.log.info("");
@@ -114,7 +114,7 @@ final class Logger {
     this.log.info("");
   }
 
-  private void successfullTests(final TestScope scope, final Stats stats) {
+  private void successfullTests(final TestScope scope, final TestStats stats) {
     this.log.info(
         MessageUtils.buffer()
             .success("Tests run: " + stats.testsRun())
@@ -126,7 +126,7 @@ final class Logger {
             .build());
   }
 
-  private void skippedTests(final TestScope scope, final Stats stats) {
+  private void skippedTests(final TestScope scope, final TestStats stats) {
     this.log.warn(
         MessageUtils.buffer()
             .warning("Tests")
@@ -143,7 +143,7 @@ final class Logger {
     this.skipped(stats.skipped());
   }
 
-  private void failedTests(final TestScope scope, final Stats stats) {
+  private void failedTests(final TestScope scope, final TestStats stats) {
     final var message =
         MessageUtils.buffer().failure("Tests").a(' ').strong("run: " + stats.testsRun());
     if (!stats.failures().isEmpty()) {
@@ -180,7 +180,7 @@ final class Logger {
     this.skipped(stats.skipped());
   }
 
-  private void erred(final Iterable<Stats.Error> tests) {
+  private void erred(final Iterable<TestStats.Error> tests) {
     for (final var test : tests) {
       boolean first = true;
       for (final String line : test.detailedMessage().lines()) {
@@ -196,7 +196,7 @@ final class Logger {
     }
   }
 
-  private void failed(final Iterable<Stats.Failure> tests) {
+  private void failed(final Iterable<TestStats.Failure> tests) {
     for (final var test : tests) {
       boolean first = true;
       for (final String line : test.detailedMessage().lines()) {
@@ -217,7 +217,7 @@ final class Logger {
     }
   }
 
-  private void skipped(final Iterable<Stats.Skipped> tests) {
+  private void skipped(final Iterable<TestStats.Skipped> tests) {
     for (final var test : tests) {
       boolean first = true;
       for (final String line : test.detailedMessage().lines()) {
