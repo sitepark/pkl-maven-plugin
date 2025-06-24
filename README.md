@@ -53,14 +53,14 @@ Whether to skip execution.
 
 ### output
 
-*only for [eval](#eval)* \
+*only for [eval](#eval)*
 
 __Required__ \
 The directory where files should be generated into.
 
 ### overwrite
 
-*only for [eval](#eval)* \
+*only for [eval](#eval)*
 
 Default: `true` \
 The directory where files should be generated into.
@@ -68,26 +68,46 @@ The directory where files should be generated into.
 ## example configuration
 
 ```xml
-<plugin>
-    <groupId>com.sitepark.maven.plugins</groupId>
-    <artifactId>pkl-maven-plugin</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
-    <executions>
-        <execution>
-            <id>test-pkl</id>
-            <phase>test</phase>
-            <goals>
-                <goal>test</goal>
-            </goals>
-        </execution>
-    </executions>
-    <configuration>
-        <directory>${baseDir}/src/test/pkl</directory>
-        <files>**/*.pkl</files>
-        <modulepath>
-            <modulepath>${baseDir}/src/main/webapp/WEB-INF/config/</modulepath>
-        </modulepath>
-    </configuration>
-</plugin>
-```
+<project>
+    <!-- this is required to use the SNAPSHOT version -->
+    <pluginRepositories>
+        <pluginRepository>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+            <id>central-portal-snapshots</id>
+            <name>Central Portal Snapshots</name>
+            <url>https://central.sonatype.com/repository/maven-snapshots/</url>
+        </pluginRepository>
+    </pluginRepositories>
 
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>com.sitepark.maven.plugins</groupId>
+                <artifactId>pkl-maven-plugin</artifactId>
+                <version>1.0.0-SNAPSHOT</version>
+                <executions>
+                    <execution>
+                        <id>test-pkl</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>test</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <directory>${baseDir}/src/test/pkl</directory>
+                    <files>**/*.pkl</files>
+                    <modulepath>
+                        <modulepath>${baseDir}/src/main/webapp/WEB-INF/config/</modulepath>
+                    </modulepath>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
+```
