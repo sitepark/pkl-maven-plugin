@@ -2,6 +2,18 @@
 
 ## goals
 
+### check-format
+
+Check pkl files against the format defined by
+[pkl-lang](https://pkl-lang.org/main/current/release-notes/0.30.html#formatter).
+Fails if any violations are found.
+
+### apply-format
+
+Apply the format defined by
+[pkl-lang](https://pkl-lang.org/main/current/release-notes/0.30.html#formatter)
+to pkl files.
+
 ### eval
 
 Evalute pkl files and write the results to the specified output-files. Fails the
@@ -51,6 +63,21 @@ Environment variables to use when executing.
 
 Whether to skip execution.
 
+### paths
+
+*only for [check-format](#check-format) and [apply-format](#apply-format)*
+
+Paths containing pkl files or directories to format/check recursively.
+
+### grammarVersion
+
+*only for [check-format](#check-format) and [apply-format](#apply-format)*
+
+The grammar compatibility version to use: \
+`1`:      0.25 - 0.29 \
+`2`:      0.30+ \
+`latest`: 0.30+ (default)
+
 ### output
 
 *only for [eval](#eval)*
@@ -92,14 +119,29 @@ The directory where files should be generated into.
                 <version>1.0.0-SNAPSHOT</version>
                 <executions>
                     <execution>
+                        <id>apply-pkl-format</id>
+                        <goals>
+                            <goal>apply-format</goal>
+                        </goals>
+                    </execution>
+                    <execution>
                         <id>test-pkl</id>
-                        <phase>test</phase>
                         <goals>
                             <goal>test</goal>
                         </goals>
                     </execution>
                 </executions>
+                <!-- configurations are combined such that invocations like
+                     `mvn pkl:apply-format`
+                     do not require additional `-D` flags -->
                 <configuration>
+                    <!-- formatting -->
+                    <paths>
+                        <path>${basedir}/src/main/webapp/WEB-INF/config/</path>
+                        <path>${basedir}/src/test/pkl/</path>
+                    </paths>
+
+                    <!-- testing -->
                     <directory>${baseDir}/src/test/pkl</directory>
                     <files>**/*.pkl</files>
                     <modulepath>

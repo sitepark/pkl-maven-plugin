@@ -1,0 +1,5 @@
+module com.sitepark.maven.plugins.pkl.unformatted
+
+local example = new Dynamic {
+  foo = "bar"
+}
