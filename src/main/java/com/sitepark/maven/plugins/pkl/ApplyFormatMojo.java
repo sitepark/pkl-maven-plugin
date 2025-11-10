@@ -5,15 +5,11 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 
-@Mojo(
-  name = "apply-format",
-  defaultPhase = LifecyclePhase.PROCESS_SOURCES,
-  threadSafe = true)
+@Mojo(name = "apply-format", defaultPhase = LifecyclePhase.PROCESS_SOURCES, threadSafe = true)
 public final class ApplyFormatMojo extends AbstractFormatMojo {
 
   public ApplyFormatMojo() {
