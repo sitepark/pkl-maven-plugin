@@ -18,11 +18,12 @@ public final class CheckFormatMojoTest {
 \\[ERROR\\] Error in src/test/resources/pkl/tests/unformatted.pkl
 \\[ERROR\\]  2 [ ]
 \\[ERROR\\]  3 -        local example = new Dynamic \\{
-\\[ERROR\\]  4 -foo = "bar"
 \\[ERROR\\]  3 \\+local example = new Dynamic \\{
-\\[ERROR\\]  4 \\+  foo = "bar"
-\\[ERROR\\]  5  \\}
-\\[ERROR\\] \\.\\.\\.
+\\[ERROR\\]  4    foo = "bar"
+\\[ERROR\\]  5 -        \\}
+\\[ERROR\\]  5 \\+}
+\\[ERROR\\]  6 [ ]
+\\[ERROR\\] ...
 \\[ERROR\\] 11  local example3 = new Dynamic \\{
 \\[ERROR\\] 12 -  foo =
 \\[ERROR\\] 13 -    "bar"
