@@ -14,7 +14,7 @@ public final class CheckFormatMojoTest {
   @Test
   public void testUnformatted() throws MojoFailureException, MojoExecutionException {
     final var expected =
-        """
+"""
 \\[ERROR\\] Error in src/test/resources/pkl/tests/unformatted.pkl
 \\[ERROR\\]  2 [ ]
 \\[ERROR\\]  3 -        local example = new Dynamic \\{

@@ -12,7 +12,7 @@ public final class TestMojoTest {
   @Test
   public void testOutputForSuccess() throws MojoFailureException, MojoExecutionException {
     final var expected =
-        """
+"""
 \\[INFO\\]
 \\[INFO\\] -------------------------------------------------------
 \\[INFO\\]  T E S T S
@@ -37,7 +37,7 @@ public final class TestMojoTest {
   @Test
   public void testOutputForFailure() throws MojoFailureException, MojoExecutionException {
     final var expected =
-        """
+"""
 \\[INFO\\]
 \\[INFO\\] -------------------------------------------------------
 \\[INFO\\]  T E S T S

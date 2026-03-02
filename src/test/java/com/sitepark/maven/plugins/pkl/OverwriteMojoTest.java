@@ -12,7 +12,7 @@ public final class OverwriteMojoTest {
   @Test
   public void testOutputForSuccess() throws MojoFailureException, MojoExecutionException {
     final var expected =
-        """
+"""
 \\[INFO\\]
 \\[INFO\\] -------------------------------------------------------
 \\[INFO\\]  T E S T S

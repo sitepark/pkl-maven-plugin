@@ -159,7 +159,7 @@
                             <engine>google-java-format</engine>
                         </removeUnusedImports>
                         <googleJavaFormat>
-                            <version>1.25.2</version>
+                            <version>1.34.1</version>
                             <style>GOOGLE</style>
                             <reflowLongStrings>true</reflowLongStrings>
                             <formatJavadoc>false</formatJavadoc>

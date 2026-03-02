@@ -13,7 +13,7 @@ public final class EvalMojoTest {
   @Test
   public void testSingleOutputFile() throws MojoFailureException, MojoExecutionException {
     final var expected =
-        """
+"""
 \\[DEBUG\\] Evaluating src/test/resources/pkl/tests/singleOutputFile\\.pkl
 \\[INFO\\] Writing target/tests/pkl/evaluated/servers\\.json
 \\[INFO\\] Files evaluated: 1, Files created: 1, Time elapsed: \\d+[\\.,]\\d+s
@@ -33,7 +33,7 @@ public final class EvalMojoTest {
   @Test
   public void testMultipleOutputFiles() throws MojoFailureException, MojoExecutionException {
     final var expected =
-        """
+"""
 \\[DEBUG\\] Evaluating src/test/resources/pkl/tests/multipleOutputFiles\\.pkl
 \\[INFO\\] Writing target/tests/pkl/evaluated/servers\\.yaml
 \\[INFO\\] Writing target/tests/pkl/evaluated/servers\\.xml
@@ -54,7 +54,7 @@ public final class EvalMojoTest {
   @Test
   public void testNoOutputFiles() throws MojoFailureException, MojoExecutionException {
     final var expected =
-        """
+"""
 \\[DEBUG\\] Evaluating src/test/resources/pkl/tests/noOutputFiles\\.pkl
 \\[WARN\\] No output files defined in src/test/resources/pkl/tests/noOutputFiles.pkl
 """;
