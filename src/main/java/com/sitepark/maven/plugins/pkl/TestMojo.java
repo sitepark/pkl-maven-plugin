@@ -67,6 +67,11 @@ public sealed class TestMojo extends AbstractMojo permits OverwriteMojo {
    */
   @Parameter boolean skip;
 
+  /**
+   * Exists only to be disabled by tests.
+   */
+  boolean color = true;
+
   private static final int MAX_DEPTH = 8;
 
   public TestMojo() {
@@ -154,6 +159,8 @@ public sealed class TestMojo extends AbstractMojo permits OverwriteMojo {
         .addResourceReader(ResourceReaders.externalProperty())
         .addEnvironmentVariables(this.environmentVariables)
         .addExternalProperties(this.properties)
+        .setPowerAssertionsEnabled(true)
+        .setColor(this.color)
         .build();
   }
 

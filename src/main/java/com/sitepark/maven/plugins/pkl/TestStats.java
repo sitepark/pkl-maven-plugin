@@ -9,7 +9,6 @@ import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
 import org.pkl.core.PklException;
@@ -118,7 +117,7 @@ final record TestStats(
     public static Message fromException(final PklException exception) {
       return new Message(
           Arrays.stream(exception.getMessage().split("\n"))
-              .filter(Predicate.isEqual("–– Pkl Error ––").negate())
+              .filter(e -> !e.contains("–– Pkl Error ––"))
               .toList());
     }
 

@@ -184,13 +184,14 @@ final class TestLogger {
     for (final var test : tests) {
       boolean first = true;
       for (final String line : test.detailedMessage().lines()) {
-        if (first) {
-          this.log.error(
-              MessageUtils.buffer().a(MESSAGE_INDENT).a(line).a(' ').failure("<<< ERROR!").build());
-          first = false;
-        } else {
-          this.log.error(MESSAGE_INDENT + line);
-        }
+        this.log.error(
+            MessageUtils.buffer()
+                .a(MESSAGE_INDENT)
+                .a(line)
+                // the (empty) failure effectively resets all color codes inside the line
+                .failure(first ? " <<< ERROR!" : "")
+                .build());
+        first = false;
       }
       this.log.info("");
     }
@@ -200,18 +201,14 @@ final class TestLogger {
     for (final var test : tests) {
       boolean first = true;
       for (final String line : test.detailedMessage().lines()) {
-        if (first) {
-          this.log.error(
-              MessageUtils.buffer()
-                  .a(MESSAGE_INDENT)
-                  .a(line)
-                  .a(' ')
-                  .failure("<<< FAILURE!")
-                  .build());
-          first = false;
-        } else {
-          this.log.error(MESSAGE_INDENT + line);
-        }
+        this.log.error(
+            MessageUtils.buffer()
+                .a(MESSAGE_INDENT)
+                .a(line)
+                // the (empty) failure effectively resets all color codes inside the line
+                .failure(first ? " <<< FAILURE!" : "")
+                .build());
+        first = false;
       }
       this.log.info("");
     }
@@ -221,18 +218,14 @@ final class TestLogger {
     for (final var test : tests) {
       boolean first = true;
       for (final String line : test.detailedMessage().lines()) {
-        if (first) {
-          this.log.warn(
-              MessageUtils.buffer()
-                  .a(MESSAGE_INDENT)
-                  .a(line)
-                  .a(' ')
-                  .failure("<<< SKIPPED!")
-                  .build());
-          first = false;
-        } else {
-          this.log.error(MESSAGE_INDENT + line);
-        }
+        this.log.warn(
+            MessageUtils.buffer()
+                .a(MESSAGE_INDENT)
+                .a(line)
+                // the (empty) failure effectively resets all color codes inside the line
+                .failure(first ? " <<< SKIPPED!" : "")
+                .build());
+        first = false;
       }
       this.log.info("");
     }

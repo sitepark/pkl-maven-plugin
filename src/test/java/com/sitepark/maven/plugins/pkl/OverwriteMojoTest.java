@@ -20,7 +20,7 @@ public final class OverwriteMojoTest {
 \\[INFO\\] Running src/test/resources/pkl/tests/writingTests\\.pkl
 \\[WARN\\] Tests run: 1, Failures: 0, Errors: 0, Skipped: 1, Time elapsed: \\d+[\\.,]\\d+s in com\\.sitepark\\.maven\\.plugins\\.pkl\\.writingTests
 \\[WARN\\]   \\(file://.*test/resources/pkl/tests/writingTests\\.pkl\\) <<< SKIPPED!
-\\[ERROR\\]   Wrote expected output for test this should be written
+\\[WARN\\]   Wrote expected output for test this should be written
 \\[INFO\\]
 \\[INFO\\]
 \\[INFO\\] Results:
@@ -35,6 +35,7 @@ public final class OverwriteMojoTest {
     final var mojo = new OverwriteMojo();
     mojo.directory = PKL_DIR;
     mojo.files = "writingTests.pkl";
+    mojo.color = false;
     mojo.setLog(log);
     Assertions.assertDoesNotThrow(mojo::execute);
     Assertions.assertLinesMatch(expected.lines(), log.captured().lines());
