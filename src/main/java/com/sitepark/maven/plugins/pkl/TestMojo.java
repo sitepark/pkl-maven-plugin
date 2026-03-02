@@ -5,6 +5,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -193,11 +194,12 @@ public sealed class TestMojo extends AbstractMojo permits OverwriteMojo {
     for (final var result : results.results()) {
       final var scope = new TestStats.Scope(module, results.name().toString(), result.name());
       for (final var error : result.errors()) {
-        stats.addError(
-            new TestStats.Error(
-                scope,
-                this.formatFailureMessage(error.message()),
-                TestStats.Message.fromException(error.exception())));
+        final var message = TestStats.Message.fromException(error.exception());
+        final var description =
+            Optional.ofNullable(error.message())
+                .map(this::formatFailureMessage)
+                .orElseGet(message::firstLine);
+        stats.addError(new TestStats.Error(scope, description, message));
       }
       for (final var failure : result.failures()) {
         if ("Example Output Written".equals(failure.kind())) {

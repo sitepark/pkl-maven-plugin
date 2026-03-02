@@ -125,6 +125,10 @@ final record TestStats(
     public List<String> lines() {
       return Collections.unmodifiableList(this.lines);
     }
+
+    public String firstLine() {
+      return this.lines.getFirst();
+    }
   }
 
   public static record Scope(
