@@ -44,7 +44,7 @@ public final class TestMojoTest {
 \\[INFO\\]  T E S T S
 \\[INFO\\] -------------------------------------------------------
 \\[INFO\\] Running src/test/resources/pkl/tests/failingTests\\.pkl
-\\[ERROR\\] Tests run: 3, Failures: 4, Errors: 0, Skipped: 0, Time elapsed: \\d+[\\.,]\\d+s <<< FAILURES! - in com\\.sitepark\\.maven\\.plugins\\.pkl\\.failingTests
+\\[ERROR\\] Tests run: 2, Failures: 3, Errors: 0, Skipped: 0, Time elapsed: \\d+[\\.,]\\d+s <<< FAILURES! - in com\\.sitepark\\.maven\\.plugins\\.pkl\\.failingTests
 \\[ERROR\\]   1 == 2 \\(file://.*src/test/resources/pkl/tests/failingTests\\.pkl\\) <<< FAILURE!
 \\[ERROR\\]     │
 \\[ERROR\\]     false
@@ -53,11 +53,15 @@ public final class TestMojoTest {
 \\[ERROR\\]     │
 \\[ERROR\\]     false
 \\[INFO\\]
-\\[ERROR\\]   \\(file://.*src/test/resources/pkl/tests/failingTests\\.pkl\\) <<< FAILURE!
-\\[ERROR\\]   Output mismatch: "my non-matching example" exists in actual but not in expected output
-\\[INFO\\]
-\\[ERROR\\]   \\(file://.*src/test/resources/pkl/tests/failingTests\\.pkl-expected\\.pcf\\) <<< FAILURE!
-\\[ERROR\\]   Output mismatch: "my perfectly matching example" exists in expected but not in actual output
+\\[ERROR\\]   #0: \\(file://.*src/test/resources/pkl/tests/failingTests\\.pkl\\) <<< FAILURE!
+\\[ERROR\\]     Expected: \\(file://.*src/test/resources/pkl/tests/failingTests\\.pkl-expected\\.pcf\\)
+\\[ERROR\\]     new \\{
+\\[ERROR\\]       foo = "baz"
+\\[ERROR\\]     \\}
+\\[ERROR\\]     Actual: \\(file://.*src/test/resources/pkl/tests/failingTests\\.pkl-actual\\.pcf\\)
+\\[ERROR\\]     new \\{
+\\[ERROR\\]       foo = "bar"
+\\[ERROR\\]     \\}
 \\[INFO\\]
 \\[INFO\\]
 \\[INFO\\] Results:
@@ -65,10 +69,9 @@ public final class TestMojoTest {
 \\[ERROR\\] Failures:
 \\[ERROR\\]   com\\.sitepark\\.maven\\.plugins\\.pkl\\.failingTests#facts\\["this should fail"\\] » 1 == 2 │ false
 \\[ERROR\\]   com\\.sitepark\\.maven\\.plugins\\.pkl\\.failingTests#facts\\["this should fail"\\] » 2 == 3 │ false
-\\[ERROR\\]   com\\.sitepark\\.maven\\.plugins\\.pkl\\.failingTests#examples\\["my non-matching example"\\] » Output mismatch: "my non-matching example" exists in actual but not in expected output
-\\[ERROR\\]   com\\.sitepark\\.maven\\.plugins\\.pkl\\.failingTests#examples\\["my perfectly matching example"\\] » Output mismatch: "my perfectly matching example" exists in expected but not in actual output
+\\[ERROR\\]   com\\.sitepark\\.maven\\.plugins\\.pkl\\.failingTests#examples\\["my non-matching example"\\] » #0: Expected: new \\{ foo = "baz" \\} Actual: new \\{ foo = "bar" \\}
 \\[INFO\\]
-\\[ERROR\\] Tests run: 3, Failures: 4, Errors: 0, Skipped: 0
+\\[ERROR\\] Tests run: 2, Failures: 3, Errors: 0, Skipped: 0
 \\[INFO\\]
 """;
     final var log = new CapturingLog();

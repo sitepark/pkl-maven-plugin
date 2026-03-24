@@ -1,5 +1,5 @@
 examples {
-  ["my perfectly matching example"] {
+  ["my non-matching example"] {
     new {
       foo = "baz"
     }
