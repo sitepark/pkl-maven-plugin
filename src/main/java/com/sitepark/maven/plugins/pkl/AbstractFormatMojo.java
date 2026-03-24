@@ -113,7 +113,8 @@ abstract class AbstractFormatMojo extends AbstractMojo {
   }
 
   private Stream<Path> allFiles() {
-    final var pathMatcher = FileSystems.getDefault().getPathMatcher("regex:^.+\\.(pkl|pcf)$");
+    final var pathMatcher =
+        FileSystems.getDefault().getPathMatcher("regex:^(.+\\.pkl|PklProject)$");
     return this.paths.stream()
         .map(e -> Paths.get(e))
         .flatMap(
