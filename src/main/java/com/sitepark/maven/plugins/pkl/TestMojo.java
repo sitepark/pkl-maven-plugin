@@ -229,7 +229,12 @@ public sealed class TestMojo extends AbstractMojo permits OverwriteMojo {
   private String formatFailureMessage(final String message) {
     return message
         .lines()
-        .map(line -> line.replaceFirst("\\s*\\(file://[^\\)]+\\)\\s*", " ").trim())
+        .map(
+            line ->
+                // remove ANSI escape sequences and the file location
+                line.replaceAll("\\x1B\\[[\\d;]{1,5}m", "")
+                    .replaceFirst("\\s*\\(file://[^\\)]+\\)\\s*", " ")
+                    .trim())
         .filter(Predicate.not(String::isEmpty))
         .collect(Collectors.joining(" "));
   }
