@@ -223,7 +223,7 @@ final class TestLogger {
                 .a(MESSAGE_INDENT)
                 .a(line)
                 // the (empty) failure effectively resets all color codes inside the line
-                .failure(first ? " <<< SKIPPED!" : "")
+                .warning(first ? " <<< SKIPPED!" : "")
                 .build());
         first = false;
       }
