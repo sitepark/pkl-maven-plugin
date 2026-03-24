@@ -1,155 +1,141 @@
 # pkl-maven-plugin
 
-## goals
+A Maven plugin for working with [Pkl](https://pkl-lang.org/) configuration files.
 
-### check-format
+---
 
-Check pkl files against the format defined by
-[pkl-lang](https://pkl-lang.org/main/current/release-notes/0.30.html#formatter).
-Fails if any violations are found.
-
-### apply-format
-
-Apply the format defined by
-[pkl-lang](https://pkl-lang.org/main/current/release-notes/0.30.html#formatter)
-to pkl files.
-
-### eval
-
-Evalute pkl files and write the results to the specified output-files. Fails the
-build if no results were written.
-
-### test
-
-Execute pkl-test files and report the results. Fails the build if tests err or
-fail.
-
-### overwrite
-
-Execute pkl-test files and report the results. Fails the build if tests err or
-fail. This overwrites the expected output files for `example` tests with the
-actual results.
-
-### help
-
-Outputs usage information about the plugin.
-
-## parameter
-
-### directory
-
-Default: `${basedir}` \
-The base directory to search pkl files in via [${pkl.files}](#files).
-
-### files
-
-__Required__ \
-A globbed path, relative to [${pkl.directory}](#directory) matching all pkl
-files to test.
-
-### modulepath
-
-A modulepath to use when executing.
-
-### properties
-
-External properties to use when executing.
-
-### environmentVariables
-
-Environment variables to use when executing.
-
-### skip
-
-Whether to skip execution.
-
-### paths
-
-*only for [check-format](#check-format) and [apply-format](#apply-format)*
-
-Paths containing pkl files or directories to format/check recursively.
-
-### grammarVersion
-
-*only for [check-format](#check-format) and [apply-format](#apply-format)*
-
-The grammar compatibility version to use: \
-`1`:      0.25 - 0.29 \
-`2`:      0.30+ \
-`latest`: 0.30+ (default)
-
-### output
-
-*only for [eval](#eval)*
-
-__Required__ \
-The directory where files should be generated into.
-
-### overwrite
-
-*only for [eval](#eval)*
-
-Default: `true` \
-The directory where files should be generated into.
-
-## example configuration
+## Quick Start
 
 ```xml
-<project>
-    <!-- this is required to use the SNAPSHOT version -->
-    <pluginRepositories>
-        <pluginRepository>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-            <id>central-portal-snapshots</id>
-            <name>Central Portal Snapshots</name>
-            <url>https://central.sonatype.com/repository/maven-snapshots/</url>
-        </pluginRepository>
-    </pluginRepositories>
+<plugin>
+    <groupId>com.sitepark.maven.plugins</groupId>
+    <artifactId>pkl-maven-plugin</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <configuration>
+        <paths>
+            <path>${basedir}/src/main/pkl/</path>
+        </paths>
+        <directory>${baseDir}/src/test/pkl</directory>
+        <files>**/*.pkl</files>
+    </configuration>
+</plugin>
+```
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>com.sitepark.maven.plugins</groupId>
-                <artifactId>pkl-maven-plugin</artifactId>
-                <version>1.0.0-SNAPSHOT</version>
-                <executions>
-                    <execution>
-                        <id>apply-pkl-format</id>
-                        <goals>
-                            <goal>apply-format</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>test-pkl</id>
-                        <goals>
-                            <goal>test</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <!-- configurations are combined such that invocations like
-                     `mvn pkl:apply-format`
-                     do not require additional `-D` flags -->
-                <configuration>
-                    <!-- formatting -->
-                    <paths>
-                        <path>${basedir}/src/main/webapp/WEB-INF/config/</path>
-                        <path>${basedir}/src/test/pkl/</path>
-                    </paths>
+---
 
-                    <!-- testing -->
-                    <directory>${baseDir}/src/test/pkl</directory>
-                    <files>**/*.pkl</files>
-                    <modulepath>
-                        <modulepath>${baseDir}/src/main/webapp/WEB-INF/config/</modulepath>
-                    </modulepath>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-</project>
+## Goals
+
+### `check-format`
+Validate Pkl files against the [Pkl formatter](https://pkl-lang.org/main/current/release-notes/0.30.html#formatter) standard. The build fails if violations are found.
+
+### `apply-format`
+Automatically format Pkl files according to the [Pkl formatter](https://pkl-lang.org/main/current/release-notes/0.30.html#formatter) standard.
+
+### `eval`
+Evaluate Pkl files and output results to specified files. The build fails if evaluation produces no output.
+
+### `test`
+Run Pkl test files and report results. The build fails if tests error, fail or none are executed.
+
+### `overwrite`
+Run Pkl test files, report results while overwriting expected outputs with actual results. The build fails if tests error, fail or none are executed.
+
+### `help`
+Display plugin usage information.
+
+---
+
+## Configuration
+
+### Common Parameters
+
+| Parameter              | Required | Default      | Description                                                          |
+| :--------------------- | :------- | :----------- | :------------------------------------------------------------------- |
+| `directory`            | —        | `${basedir}` | Base directory for searching Pkl files via `files` glob pattern      |
+| `files`                | ✓        | —            | Glob pattern (relative to `directory`) matching Pkl files to process |
+| `modulepath`           | —        | —            | Module path for Pkl execution                                        |
+| `properties`           | —        | —            | External properties passed during execution                          |
+| `environmentVariables` | —        | —            | Environment variables passed during execution                        |
+| `skip`                 | —        | `false`      | Skip goal execution                                                  |
+
+### Format-Specific Parameters
+*For `check-format` and `apply-format` goals*
+
+| Parameter        | Default  | Description                                                              |
+| :--------------- | :------- | :----------------------------------------------------------------------- |
+| `paths`          | —        | Paths/directories containing Pkl files to format (processed recursively) |
+| `grammarVersion` | `latest` | Grammar compatibility: `1` (0.25-0.29), `2` (0.30+), `latest` (0.30+)    |
+
+### Eval-Specific Parameters
+*For `eval` goal*
+
+| Parameter   | Required | Default | Description                          |
+| :---------- | :------- | :------ | :----------------------------------- |
+| `output`    | ✓        | —       | Output directory for generated files |
+| `overwrite` | —        | `true`  | Overwrite existing output files      |
+
+---
+
+## Usage Examples
+
+### Format and test your Pkl files
+
+```xml
+<build>
+    <plugins>
+        <plugin>
+            <groupId>com.sitepark.maven.plugins</groupId>
+            <artifactId>pkl-maven-plugin</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+            <executions>
+                <execution>
+                    <id>apply-pkl-format</id>
+                    <goals>
+                        <goal>apply-format</goal>
+                    </goals>
+                </execution>
+                <execution>
+                    <id>test-pkl</id>
+                    <goals>
+                        <goal>test</goal>
+                    </goals>
+                </execution>
+            </executions>
+            <configuration>
+                <!-- Formatting -->
+                <paths>
+                    <path>${basedir}/src/main/webapp/WEB-INF/config/</path>
+                    <path>${basedir}/src/test/pkl/</path>
+                </paths>
+
+                <!-- Testing -->
+                <directory>${baseDir}/src/test/pkl</directory>
+                <files>**/*.pkl</files>
+                <modulepath>
+                    <modulepath>${baseDir}/src/main/webapp/WEB-INF/config/</modulepath>
+                </modulepath>
+            </configuration>
+        </plugin>
+    </plugins>
+</build>
+```
+
+### Using SNAPSHOT version
+
+If using a SNAPSHOT version, add this to your `pom.xml`:
+
+```xml
+<pluginRepositories>
+    <pluginRepository>
+        <id>central-portal-snapshots</id>
+        <name>Central Portal Snapshots</name>
+        <url>https://central.sonatype.com/repository/maven-snapshots/</url>
+        <releases>
+            <enabled>false</enabled>
+        </releases>
+        <snapshots>
+            <enabled>true</enabled>
+        </snapshots>
+    </pluginRepository>
+</pluginRepositories>
 ```
