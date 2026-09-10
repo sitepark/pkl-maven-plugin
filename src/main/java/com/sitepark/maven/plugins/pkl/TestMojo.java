@@ -65,7 +65,8 @@ public sealed class TestMojo extends AbstractMojo permits OverwriteMojo {
   /**
    * Whether to skip execution.
    */
-  @Parameter boolean skip;
+  @Parameter(property = "pkl.test.skip", defaultValue = "false")
+  boolean skip;
 
   /**
    * Exists only to be disabled by tests.
