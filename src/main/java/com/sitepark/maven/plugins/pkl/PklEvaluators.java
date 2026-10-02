@@ -21,14 +21,18 @@ final class PklEvaluators {
   private PklEvaluators() {}
 
   /**
-   * Creates the resolver for the {@code modulepath:} scheme. A configured modulepath takes
+   * Creates the resolver for the {@code modulepath:} scheme, resolving relative entries against
+   * the base directory. A configured modulepath takes
    * precedence over the one declared in the evaluator settings of the given project, just like
    * the CLI's {@code --module-path} takes precedence over the project's.
    */
   public static ModulePathResolver modulePathResolver(
-      final Set<String> modulepath, final Project project) {
+      final Set<String> modulepath, final Project project, final Path basedir) {
     if (modulepath != null && !modulepath.isEmpty()) {
-      return new ModulePathResolver(modulepath.stream().map(Path::of).collect(Collectors.toSet()));
+      return new ModulePathResolver(
+          modulepath.stream()
+              .map(entry -> basedir.resolve(entry).normalize())
+              .collect(Collectors.toSet()));
     }
     if (project != null) {
       final var projectModulePath = project.getResolvedEvaluatorSettings().modulePath();
@@ -48,7 +52,7 @@ final class PklEvaluators {
       final Project project,
       final Map<String, String> environmentVariables,
       final Map<String, String> properties,
-      final String cacheDir,
+      final Path moduleCacheDir,
       final boolean noCache,
       final boolean color) {
     final var builder =
@@ -67,8 +71,8 @@ final class PklEvaluators {
     // applied after the project, so that an explicitly configured cache wins over its settings
     if (noCache) {
       builder.setModuleCacheDir(null);
-    } else if (cacheDir != null) {
-      builder.setModuleCacheDir(Path.of(cacheDir));
+    } else if (moduleCacheDir != null) {
+      builder.setModuleCacheDir(moduleCacheDir);
     }
     return builder
         .addModuleKeyFactory(ModuleKeyFactories.file)

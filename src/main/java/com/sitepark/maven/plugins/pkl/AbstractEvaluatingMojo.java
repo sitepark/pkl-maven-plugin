@@ -79,7 +79,7 @@ abstract class AbstractEvaluatingMojo extends AbstractProjectMojo {
   }
 
   protected final ModulePathResolver modulePathResolver(final Project project) {
-    return PklEvaluators.modulePathResolver(this.modulePath, project);
+    return PklEvaluators.modulePathResolver(this.modulePath, project, this.basedirPath());
   }
 
   protected final Evaluator evaluator(
@@ -89,7 +89,7 @@ abstract class AbstractEvaluatingMojo extends AbstractProjectMojo {
         project,
         this.env,
         this.externalProperties,
-        this.moduleCacheDir,
+        this.moduleCacheDir != null ? this.resolve(this.moduleCacheDir) : null,
         this.noCache,
         this.color);
   }

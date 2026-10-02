@@ -159,7 +159,8 @@ public final class TestMojoTest {
     mojo.color = false;
     mojo.setLog(log);
     final var exception = Assertions.assertThrows(MojoFailureException.class, mojo::execute);
-    Assertions.assertEquals("No PklProject found in '" + PKL_DIR + "'", exception.getMessage());
+    Assertions.assertEquals(
+        "No PklProject found in '" + Path.of(PKL_DIR) + "'", exception.getMessage());
   }
 
   @Test
@@ -230,5 +231,22 @@ public final class TestMojoTest {
     mojo.color = false;
     mojo.setLog(log);
     Assertions.assertDoesNotThrow(mojo::execute);
+  }
+
+  @Test
+  public void testRelativeJunitReportsDirectoryIsResolvedAgainstBasedir() throws Exception {
+    final var basedir = Path.of("target/tests/pkl/basedir");
+    Files.createDirectories(basedir);
+    final var log = new CapturingLog();
+    final var mojo = new TestMojo();
+    mojo.basedir = basedir.toFile();
+    mojo.tests = Set.of(Path.of(PKL_DIR).toAbsolutePath() + "/succeedingTests.pkl");
+    mojo.junit = junit("reports", false, "pkl-tests");
+    mojo.color = false;
+    mojo.setLog(log);
+    Assertions.assertDoesNotThrow(mojo::execute);
+    Assertions.assertTrue(
+        Files.exists(
+            basedir.resolve("reports/com.sitepark.maven.plugins.pkl.succeedingTests.xml")));
   }
 }

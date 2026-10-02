@@ -29,7 +29,7 @@ abstract class AbstractProjectMojo extends AbstractPklMojo {
   protected final Project project(final Path searchStart) throws MojoFailureException {
     final Path projectFile;
     if (this.projectDir != null) {
-      projectFile = PklProjects.projectFileOf(this.projectDir);
+      projectFile = PklProjects.projectFileOf(this.resolve(this.projectDir));
     } else {
       final var found = PklProjects.find(searchStart, this.basedirPath());
       if (found.isEmpty()) {

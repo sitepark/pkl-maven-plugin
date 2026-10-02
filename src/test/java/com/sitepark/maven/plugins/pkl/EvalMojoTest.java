@@ -1,6 +1,7 @@
 package com.sitepark.maven.plugins.pkl;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.Set;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -75,7 +76,7 @@ public final class EvalMojoTest {
 """
 \\[DEBUG\\] Using project .*/src/test/resources/pkl/project/PklProject
 \\[DEBUG\\] Evaluating src/test/resources/pkl/project/eval/ids\\.pkl
-\\[INFO\\] Writing target/tests/pkl/evaluated/ids\\.json
+\\[INFO\\] Writing .*/target/tests/pkl/evaluated/ids\\.json
 \\[INFO\\] Files evaluated: 1, Files created: 1, Time elapsed: \\d+([\\.,]\\d+)?s
 \\[INFO\\]
 """;
@@ -83,7 +84,8 @@ public final class EvalMojoTest {
     final var mojo = new EvalMojo();
     mojo.modules = Set.of("eval/ids.pkl");
     mojo.basedir = new File(PROJECT_DIR);
-    mojo.outputDirectory = OUTPUT_DIR;
+    // absolute, so that the relative basedir of this test does not redirect the output
+    mojo.outputDirectory = Path.of(OUTPUT_DIR).toAbsolutePath().toString();
     mojo.overwrite = true;
     mojo.setLog(log);
     Assertions.assertDoesNotThrow(mojo::execute);

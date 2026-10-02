@@ -48,9 +48,8 @@ final class PklProjects {
   /**
    * Returns the {@code PklProject} file of the given project directory, which has to exist.
    */
-  public static Path projectFileOf(final String projectDir) throws MojoFailureException {
-    final var projectFile =
-        Path.of(projectDir).resolve(ProjectDependenciesManager.PKL_PROJECT_FILENAME);
+  public static Path projectFileOf(final Path projectDir) throws MojoFailureException {
+    final var projectFile = projectDir.resolve(ProjectDependenciesManager.PKL_PROJECT_FILENAME);
     if (!Files.isRegularFile(projectFile)) {
       throw new MojoFailureException(
           "No "

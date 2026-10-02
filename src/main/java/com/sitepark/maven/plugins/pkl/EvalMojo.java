@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.Set;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -101,7 +100,7 @@ public final class EvalMojo extends AbstractEvaluatingMojo {
           .setSecondsElapsed(secondsElapsed)
           .build();
     }
-    final var output = Paths.get(this.outputDirectory);
+    final var output = this.resolve(this.outputDirectory);
     for (final var result : results.entrySet()) {
       final var outputFile = output.resolve(result.getKey());
       try {

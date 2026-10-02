@@ -120,7 +120,7 @@ public sealed class TestMojo extends AbstractEvaluatingMojo permits OverwriteMoj
       return;
     }
     final var reporter = new JUnitReporter(this.junit.suiteName);
-    final var directory = Path.of(this.junit.reportsDirectory);
+    final var directory = this.resolve(this.junit.reportsDirectory);
     try {
       Files.createDirectories(directory);
       if (this.junit.aggregate) {

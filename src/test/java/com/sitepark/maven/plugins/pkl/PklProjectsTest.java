@@ -39,4 +39,10 @@ public final class PklProjectsTest {
     final var directory = Path.of("src/test/resources/pkl/tests");
     Assertions.assertTrue(PklProjects.find(directory, directory).isEmpty());
   }
+
+  @Test
+  public void testProjectFileOfResolvesAgainstTheGivenDirectory() throws Exception {
+    final var projectFile = PklProjects.projectFileOf(PROJECT_DIR.toAbsolutePath());
+    Assertions.assertEquals(PROJECT_DIR.toAbsolutePath().resolve("PklProject"), projectFile);
+  }
 }
