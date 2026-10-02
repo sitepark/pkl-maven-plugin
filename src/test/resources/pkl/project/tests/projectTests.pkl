@@ -1,0 +1,12 @@
+module com.sitepark.maven.plugins.pkl.projectTests
+
+amends "pkl:test"
+
+local modules = import*("@dep/*.pkl").toMap().values.toList()
+
+facts {
+  ["dependency modules are globbed"] {
+    modules.length == 2
+    modules.every((m) -> m.id.startsWith("dep-"))
+  }
+}

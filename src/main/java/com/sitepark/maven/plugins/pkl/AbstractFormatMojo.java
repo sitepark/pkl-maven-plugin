@@ -1,16 +1,13 @@
 package com.sitepark.maven.plugins.pkl;
 
 import java.io.IOException;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
@@ -18,14 +15,19 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.pkl.formatter.Formatter;
 import org.pkl.formatter.GrammarVersion;
 
-abstract class AbstractFormatMojo extends AbstractMojo {
+abstract class AbstractFormatMojo extends AbstractPklMojo {
   protected FormatLogger logger;
 
   /**
-   * Paths containing pkl files or directories to format/check recursively.
+   * The pkl sources to format, as files or directories containing them.
    */
   @Parameter(required = true)
-  Set<String> paths;
+  Set<String> sources;
+
+  /**
+   * The patterns excluded from the configured directories.
+   */
+  @Parameter List<String> excludes = PklFiles.DEFAULT_EXCLUDES;
 
   /**
    * The grammar compatibility version to use:
@@ -33,16 +35,8 @@ abstract class AbstractFormatMojo extends AbstractMojo {
    * 2:      0.30+
    * latest: 0.30+ (default)
    */
-  @Parameter(property = "pkl.format.grammarVersion", defaultValue = "latest")
+  @Parameter(property = "pkl.grammarVersion", defaultValue = "latest")
   String grammarVersion;
-
-  /**
-   * Whether to skip execution.
-   */
-  @Parameter(property = "pkl.format.skip", defaultValue = "false")
-  boolean skip;
-
-  private static final int MAX_DEPTH = 8;
 
   private static final class UncheckedMojoExecutionException extends RuntimeException {
     private final MojoExecutionException exception;
@@ -67,18 +61,23 @@ abstract class AbstractFormatMojo extends AbstractMojo {
     }
   }
 
+  /**
+   * Tells whether this goal's own skip parameter is set.
+   */
+  protected abstract boolean isSkipConfigured();
+
   protected AbstractFormatMojo() {
     this.logger = new FormatLogger(this.getLog());
   }
 
+  @Override
   public void execute() throws MojoFailureException, MojoExecutionException {
-    if (this.skip) {
+    if (this.skipped(this.isSkipConfigured())) {
       this.logger.executionSkipped();
       return;
     }
     this.logger.beginExecution();
 
-    final var formatter = new Formatter();
     final var grammarVersion =
         switch (this.grammarVersion) {
           case "1" -> GrammarVersion.V1;
@@ -88,11 +87,12 @@ abstract class AbstractFormatMojo extends AbstractMojo {
               throw new MojoFailureException(
                   "Invalid grammar version '" + v + "'. expected '1', '2' or 'latest'");
         };
+    final var formatter = new Formatter(grammarVersion);
     final Map<Boolean, List<Path>> results;
     try {
       results =
           this.allFiles()
-              .map(file -> this.formatFile(file, formatter, grammarVersion))
+              .map(file -> this.formatFile(file, formatter))
               .collect(
                   Collectors.groupingBy(
                       FormattingResult::success,
@@ -113,33 +113,17 @@ abstract class AbstractFormatMojo extends AbstractMojo {
   }
 
   private Stream<Path> allFiles() {
-    final var pathMatcher =
-        FileSystems.getDefault().getPathMatcher("regex:^(.+\\.pkl|PklProject)$");
-    return this.paths.stream()
-        .map(e -> Paths.get(e))
-        .flatMap(
-            file -> {
-              if (!Files.exists(file)) {
-                throw new UncheckedMojoExecutionException(
-                    new MojoExecutionException("file '" + file + "' does not exist"));
-              }
-              if (Files.isDirectory(file)) {
-                try {
-                  return Files.walk(file, MAX_DEPTH)
-                      .filter(Files::isRegularFile)
-                      .filter(pathMatcher::matches);
-                } catch (final IOException exception) {
-                  throw new UncheckedMojoExecutionException(
-                      new MojoExecutionException(
-                          "could not recourse directory '" + file + "'", exception));
-                }
-              }
-              return Stream.of(file);
-            });
+    try {
+      return PklFiles.collect(
+          this.sources, PklFiles.PKL_FILES_AND_PROJECTS, this.excludes, this.basedirPath())
+          .stream();
+    } catch (final IOException exception) {
+      throw new UncheckedMojoExecutionException(
+          new MojoExecutionException("failed to read the pkl sources", exception));
+    }
   }
 
-  private FormattingResult formatFile(
-      final Path file, final Formatter formatter, final GrammarVersion grammarVersion) {
+  private FormattingResult formatFile(final Path file, final Formatter formatter) {
     final String contents;
     try {
       contents = Files.readString(file);
@@ -150,7 +134,7 @@ abstract class AbstractFormatMojo extends AbstractMojo {
     final String formatted;
     try {
       // can throw (atleast) a NoSuchFileException
-      formatted = formatter.format(contents, grammarVersion);
+      formatted = formatter.format(contents);
     } catch (final Throwable exception) {
       throw new UncheckedMojoExecutionException(
           new MojoExecutionException(

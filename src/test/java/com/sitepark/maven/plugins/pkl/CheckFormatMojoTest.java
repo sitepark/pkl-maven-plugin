@@ -34,7 +34,7 @@ public final class CheckFormatMojoTest {
     final var log = new CapturingLog();
     final var mojo = new CheckFormatMojo();
     mojo.grammarVersion = "latest";
-    mojo.paths = Set.of(Paths.get(PKL_DIR).resolve("unformatted.pkl").toString());
+    mojo.sources = Set.of(Paths.get(PKL_DIR).resolve("unformatted.pkl").toString());
     mojo.setLog(log);
     Assertions.assertThrows(MojoFailureException.class, mojo::execute);
     Assertions.assertLinesMatch(expected.lines(), log.captured().lines());
@@ -46,7 +46,7 @@ public final class CheckFormatMojoTest {
     final var log = new CapturingLog();
     final var mojo = new CheckFormatMojo();
     mojo.grammarVersion = "latest";
-    mojo.paths = Set.of(Paths.get(PKL_DIR).resolve("formatted.pkl").toString());
+    mojo.sources = Set.of(Paths.get(PKL_DIR).resolve("formatted.pkl").toString());
     mojo.setLog(log);
     Assertions.assertDoesNotThrow(mojo::execute);
     Assertions.assertLinesMatch(expected.lines(), log.captured().lines());
@@ -57,8 +57,19 @@ public final class CheckFormatMojoTest {
     final var log = new CapturingLog();
     final var mojo = new CheckFormatMojo();
     mojo.grammarVersion = "latest";
-    mojo.paths = Set.of(Paths.get(PKL_DIR).resolve("nonexistent.pkl").toString());
+    mojo.sources = Set.of(Paths.get(PKL_DIR).resolve("nonexistent.pkl").toString());
     mojo.setLog(log);
     Assertions.assertThrows(MojoExecutionException.class, mojo::execute);
+  }
+
+  @Test
+  public void testChecksPklProjectFiles() {
+    final var log = new CapturingLog();
+    final var mojo = new CheckFormatMojo();
+    mojo.sources = Set.of("src/test/resources/pkl/format");
+    mojo.grammarVersion = "latest";
+    mojo.setLog(log);
+    Assertions.assertThrows(MojoFailureException.class, mojo::execute);
+    Assertions.assertTrue(log.captured().contains("PklProject"));
   }
 }

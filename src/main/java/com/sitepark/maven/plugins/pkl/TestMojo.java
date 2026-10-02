@@ -1,15 +1,15 @@
 package com.sitepark.maven.plugins.pkl;
 
 import java.io.IOException;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
@@ -18,62 +18,35 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.pkl.core.Evaluator;
-import org.pkl.core.EvaluatorBuilder;
 import org.pkl.core.ModuleSource;
-import org.pkl.core.SecurityManagers;
-import org.pkl.core.StackFrameTransformers;
 import org.pkl.core.TestResults;
-import org.pkl.core.module.ModuleKeyFactories;
-import org.pkl.core.module.ModulePathResolver;
-import org.pkl.core.resource.ResourceReaders;
+import org.pkl.core.project.Project;
+import org.pkl.core.stdlib.test.report.JUnitReporter;
 
 @Mojo(
     name = "test",
     defaultPhase = LifecyclePhase.TEST,
     requiresDependencyResolution = ResolutionScope.TEST)
-public sealed class TestMojo extends AbstractMojo permits OverwriteMojo {
+public sealed class TestMojo extends AbstractEvaluatingMojo permits OverwriteMojo {
   private final boolean overwrite;
   private TestLogger logger;
 
   /**
-   * A globbed path, relative to ${pkl.directory} matching all pkl files to test.
+   * The test modules to run, as files or directories containing them. Defaults to the tests
+   * declared by the PklProject.
    */
-  @Parameter(required = true)
-  String files;
+  @Parameter Set<String> tests;
 
   /**
-   * The base directory to search pkl files in via ${pkl.files}.
+   * The JUnit XML report options.
    */
-  @Parameter(defaultValue = "${basedir}")
-  String directory;
-
-  /**
-   * A modulepath to use when executing.
-   */
-  @Parameter Set<String> modulepath;
-
-  /**
-   * Properties to use when executing.
-   */
-  @Parameter Map<String, String> properties = Map.of();
-
-  /**
-   * Environment variables to use when executing.
-   */
-  @Parameter Map<String, String> environmentVariables = Map.of();
+  @Parameter JUnitOptions junit;
 
   /**
    * Whether to skip execution.
    */
   @Parameter(property = "pkl.test.skip", defaultValue = "false")
   boolean skip;
-
-  /**
-   * Exists only to be disabled by tests.
-   */
-  boolean color = true;
-
-  private static final int MAX_DEPTH = 8;
 
   public TestMojo() {
     this(false);
@@ -83,36 +56,30 @@ public sealed class TestMojo extends AbstractMojo permits OverwriteMojo {
     this.overwrite = overwrite;
   }
 
+  @Override
   public void execute() throws MojoFailureException, MojoExecutionException {
     if (this.logger == null) {
       this.logger = new TestLogger(this.getLog());
     }
-    if (this.skip) {
+    if (this.skipped(this.skip)) {
       this.logger.executionSkipped();
       return;
     }
     this.logger.beginExecution();
+    final var project = this.project(this.searchStart(this.tests));
     // searching files and running tests cannot be done in the same stream as
     // the tests may delete `mytest.pkl-actual.pcf` files.
-    final Set<Path> files;
-    try {
-      final var directory = Path.of(this.directory);
-      final var globExpression = "glob:" + directory + "/" + this.files;
-      files =
-          Files.walk(directory, MAX_DEPTH)
-              .filter(FileSystems.getDefault().getPathMatcher(globExpression)::matches)
-              .collect(Collectors.toSet());
-    } catch (final IOException exception) {
-      throw new MojoExecutionException("Failed to read test files", exception);
-    }
+    final var files = this.testFiles(project);
+    final var results = new ArrayList<TestResults>();
     final TestStats stats;
-    try (final var modulePathResolver = this.modulePathResolver();
-        final var evaluator = this.evaluator(modulePathResolver)) {
+    try (final var modulePathResolver = this.modulePathResolver(project);
+        final var evaluator = this.evaluator(modulePathResolver, project)) {
       stats =
           files.stream()
-              .map(file -> this.runTests(evaluator, file))
+              .map(file -> this.runTests(evaluator, file, results))
               .collect(new TestStats.SummingCollector());
     }
+    this.writeJunitReports(results);
     if (stats.testsRun() == 0) {
       throw new MojoFailureException("No tests were executed!");
     }
@@ -130,45 +97,58 @@ public sealed class TestMojo extends AbstractMojo permits OverwriteMojo {
     this.logger = new TestLogger(log);
   }
 
-  private final ModulePathResolver modulePathResolver() {
-    final Set<Path> modulepath =
-        this.modulepath != null
-            ? this.modulepath.stream().map(Path::of).collect(Collectors.toSet())
-            : Set.of();
-    return new ModulePathResolver(modulepath);
+  @Override
+  protected void logProject(final Path projectFile) {
+    this.logger.usingProject(projectFile);
   }
 
-  private final Evaluator evaluator(final ModulePathResolver modulePathResolver) {
-    return EvaluatorBuilder.unconfigured()
-        .setStackFrameTransformer(StackFrameTransformers.defaultTransformer)
-        .setAllowedModules(SecurityManagers.defaultAllowedModules)
-        .setAllowedResources(SecurityManagers.defaultAllowedResources)
-        .addModuleKeyFactory(ModuleKeyFactories.standardLibrary)
-        .addModuleKeyFactory(ModuleKeyFactories.modulePath(modulePathResolver))
-        .addModuleKeyFactory(ModuleKeyFactories.file)
-        .addModuleKeyFactory(ModuleKeyFactories.http)
-        .addModuleKeyFactory(ModuleKeyFactories.pkg)
-        .addModuleKeyFactory(ModuleKeyFactories.projectpackage)
-        .addModuleKeyFactory(ModuleKeyFactories.genericUrl)
-        .addResourceReader(ResourceReaders.file())
-        .addResourceReader(ResourceReaders.http())
-        .addResourceReader(ResourceReaders.https())
-        .addResourceReader(ResourceReaders.pkg())
-        .addResourceReader(ResourceReaders.projectpackage())
-        .addResourceReader(ResourceReaders.modulePath(modulePathResolver))
-        .addResourceReader(ResourceReaders.environmentVariable())
-        .addResourceReader(ResourceReaders.externalProperty())
-        .addEnvironmentVariables(this.environmentVariables)
-        .addExternalProperties(this.properties)
-        .setPowerAssertionsEnabled(true)
-        .setColor(this.color)
-        .build();
+  private Set<Path> testFiles(final Project project)
+      throws MojoExecutionException, MojoFailureException {
+    if (this.tests != null && !this.tests.isEmpty()) {
+      return this.collect(this.tests, "test files");
+    }
+    final var declared = project != null ? project.getTests() : List.<Path>of();
+    if (declared.isEmpty()) {
+      throw new MojoFailureException(
+          "Configure 'tests' or declare 'tests' in a PklProject to select the tests to run.");
+    }
+    return new LinkedHashSet<>(declared);
   }
 
-  private final TestStats runTests(final Evaluator evaluator, final Path file) {
+  private void writeJunitReports(final List<TestResults> results) throws MojoExecutionException {
+    if (this.junit == null || this.junit.reportsDirectory == null) {
+      return;
+    }
+    final var reporter = new JUnitReporter(this.junit.suiteName);
+    final var directory = Path.of(this.junit.reportsDirectory);
+    try {
+      Files.createDirectories(directory);
+      if (this.junit.aggregate) {
+        final var file = directory.resolve(this.junit.suiteName + ".xml");
+        try (final var writer = Files.newBufferedWriter(file)) {
+          reporter.summarize(results, writer);
+        }
+        this.logger.writeReport(file);
+      } else {
+        for (final var result : results) {
+          final var file = directory.resolve(result.moduleName() + ".xml");
+          try (final var writer = Files.newBufferedWriter(file)) {
+            reporter.report(result, writer);
+          }
+          this.logger.writeReport(file);
+        }
+      }
+    } catch (final IOException exception) {
+      throw new MojoExecutionException("Failed to write junit reports to " + directory, exception);
+    }
+  }
+
+  private final TestStats runTests(
+      final Evaluator evaluator, final Path file, final List<TestResults> collected) {
     this.logger.runTest(file.toString());
     final long start = System.currentTimeMillis();
     final var results = evaluator.evaluateTest(ModuleSource.path(file), this.overwrite);
+    collected.add(results);
     final double secondsElapsed = ((double) (System.currentTimeMillis() - start)) / 1_000;
     final var stats = this.collectTestResults(results, secondsElapsed);
     this.logger.testResult(results.moduleName(), stats);
