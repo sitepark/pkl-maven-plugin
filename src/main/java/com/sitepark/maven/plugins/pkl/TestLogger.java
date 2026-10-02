@@ -1,5 +1,6 @@
 package com.sitepark.maven.plugins.pkl;
 
+import java.nio.file.Path;
 import java.text.DecimalFormat;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.shared.utils.logging.MessageUtils;
@@ -28,6 +29,14 @@ final class TestLogger {
 
   public void executionSkipped() {
     this.log.info("Tests are skipped");
+  }
+
+  public void writeReport(final Path file) {
+    this.log.info("Writing " + file);
+  }
+
+  public void usingProject(final Path projectFile) {
+    this.log.debug("Using project " + projectFile);
   }
 
   public void beginExecution() {

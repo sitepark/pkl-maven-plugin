@@ -1,5 +1,6 @@
 package com.sitepark.maven.plugins.pkl;
 
+import java.util.Set;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.junit.jupiter.api.Assertions;
@@ -18,7 +19,7 @@ public final class OverwriteMojoTest {
 \\[INFO\\]  T E S T S
 \\[INFO\\] -------------------------------------------------------
 \\[INFO\\] Running src/test/resources/pkl/tests/writingTests\\.pkl
-\\[WARN\\] Tests run: 1, Failures: 0, Errors: 0, Skipped: 1, Time elapsed: \\d+[\\.,]\\d+s in com\\.sitepark\\.maven\\.plugins\\.pkl\\.writingTests
+\\[WARN\\] Tests run: 1, Failures: 0, Errors: 0, Skipped: 1, Time elapsed: \\d+([\\.,]\\d+)?s in com\\.sitepark\\.maven\\.plugins\\.pkl\\.writingTests
 \\[WARN\\]   \\(file://.*test/resources/pkl/tests/writingTests\\.pkl\\) <<< SKIPPED!
 \\[WARN\\]   Wrote expected output for test this should be written
 \\[INFO\\]
@@ -33,8 +34,7 @@ public final class OverwriteMojoTest {
 """;
     final var log = new CapturingLog();
     final var mojo = new OverwriteMojo();
-    mojo.directory = PKL_DIR;
-    mojo.files = "writingTests.pkl";
+    mojo.tests = Set.of(PKL_DIR + "writingTests.pkl");
     mojo.color = false;
     mojo.setLog(log);
     Assertions.assertDoesNotThrow(mojo::execute);

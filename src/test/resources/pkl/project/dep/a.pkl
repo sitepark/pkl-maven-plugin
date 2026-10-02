@@ -1,0 +1,3 @@
+module a
+
+id = "dep-a"

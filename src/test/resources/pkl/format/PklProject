@@ -1,0 +1,8 @@
+amends "pkl:Project"
+
+package {
+    name="unformatted"
+  baseUri    = "package://example.com/unformatted"
+  version = "1.0.0"
+  packageZipUrl = "https://example.com/unformatted@1.0.0.zip"
+}

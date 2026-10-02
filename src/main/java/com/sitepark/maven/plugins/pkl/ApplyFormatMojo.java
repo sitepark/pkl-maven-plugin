@@ -8,12 +8,24 @@ import java.nio.file.StandardOpenOption;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
 
 @Mojo(name = "apply-format", defaultPhase = LifecyclePhase.PROCESS_SOURCES, threadSafe = true)
 public final class ApplyFormatMojo extends AbstractFormatMojo {
 
+  /**
+   * Whether to skip execution.
+   */
+  @Parameter(property = "pkl.apply-format.skip", defaultValue = "false")
+  boolean skip;
+
   public ApplyFormatMojo() {
     super();
+  }
+
+  @Override
+  protected boolean isSkipConfigured() {
+    return this.skip;
   }
 
   @Override

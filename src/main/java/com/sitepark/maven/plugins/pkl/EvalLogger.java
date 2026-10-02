@@ -18,6 +18,10 @@ final class EvalLogger {
     this.log.info("Evaluation is skipped");
   }
 
+  public void usingProject(final Path projectFile) {
+    this.log.debug("Using project " + projectFile);
+  }
+
   public void beginExecution() {}
 
   public void evalFile(final Path file) {
