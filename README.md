@@ -166,6 +166,7 @@ Keep the reports apart from `surefire-reports` so that the Java and Pkl reports 
 | Parameter          | Default                                                      | Description                                                         |
 | :----------------- | :----------------------------------------------------------- | :------------------------------------------------------------------ |
 | `outputPath`       | `${project.build.directory}/pkl-packages/%{name}@%{version}` | Where to write the package; supports `%{name}` and `%{version}`     |
+| `moduleCacheDir`   | pkl's module cache                                           | Directory to cache downloaded packages in                           |
 | `skipPublishCheck` | `false`                                                      | Skip checking whether the package was already published differently |
 
 The publish check requests the package's `baseUri`, so set `skipPublishCheck` for packages that

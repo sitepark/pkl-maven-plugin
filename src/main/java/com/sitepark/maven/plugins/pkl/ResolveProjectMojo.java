@@ -46,7 +46,7 @@ public final class ResolveProjectMojo extends AbstractProjectMojo {
     final var cacheDir =
         this.moduleCacheDir != null
             ? Path.of(this.moduleCacheDir)
-            : IoUtils.getDefaultModuleCacheDir();
+            : IoUtils.getSystemModuleCacheDir();
     final var output = new StringWriter();
     final var depsFile =
         project.getProjectDir().resolve(ProjectDependenciesManager.PKL_PROJECT_DEPS_FILENAME);

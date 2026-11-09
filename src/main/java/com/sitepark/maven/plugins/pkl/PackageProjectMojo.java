@@ -17,6 +17,7 @@ import org.pkl.core.http.HttpClient;
 import org.pkl.core.module.ProjectDependenciesManager;
 import org.pkl.core.packages.PackageLoadError;
 import org.pkl.core.project.ProjectPackager;
+import org.pkl.core.util.IoUtils;
 
 @Mojo(name = "package-project", defaultPhase = LifecyclePhase.PACKAGE, threadSafe = true)
 public final class PackageProjectMojo extends AbstractProjectMojo {
@@ -27,6 +28,11 @@ public final class PackageProjectMojo extends AbstractProjectMojo {
    */
   @Parameter(defaultValue = "${project.build.directory}/pkl-packages/%{name}@%{version}")
   String outputPath;
+
+  /**
+   * The directory to cache downloaded packages in. Defaults to pkl's module cache directory.
+   */
+  @Parameter String moduleCacheDir;
 
   /**
    * Whether to skip checking if the package has already been published with different contents.
@@ -60,6 +66,11 @@ public final class PackageProjectMojo extends AbstractProjectMojo {
     }
     final var projectFile =
         project.getProjectDir().resolve(ProjectDependenciesManager.PKL_PROJECT_FILENAME);
+    final var install = false;
+    final var cacheDir =
+        this.moduleCacheDir != null
+            ? Path.of(this.moduleCacheDir)
+            : IoUtils.getSystemModuleCacheDir();
     final var output = new StringWriter();
     try (final var httpClient = HttpClient.builder().build()) {
       new ProjectPackager(
@@ -71,6 +82,8 @@ public final class PackageProjectMojo extends AbstractProjectMojo {
               SecurityManagers.defaultManager,
               httpClient,
               this.skipPublishCheck,
+              install,
+              cacheDir,
               output)
           .createPackages();
     } catch (final IOException exception) {
